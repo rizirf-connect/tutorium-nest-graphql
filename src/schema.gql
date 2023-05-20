@@ -1,0 +1,90 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreateStudentInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  phone: String!
+  school: School!
+}
+
+type Mutation {
+  createStudent(createStudentInput: CreateStudentInput!): Student!
+  registerTutor(registerTutorInput: RegisterTutorInput!): Tutor!
+  removeStudent(id: Int!): Student!
+  removeTutor(id: Int!): Tutor!
+  updateStudent(updateStudentInput: UpdateStudentInput!): Student!
+  updateTutor(updateTutorInput: UpdateTutorInput!): Tutor!
+  updateTutorExperience(udateExperienceInput: UpdateExperienceInput!): Tutor!
+}
+
+type Query {
+  student(id: Int!): Student!
+  students: [Student!]!
+  tutor(id: Int!): Tutor!
+  tutors: [Tutor!]!
+}
+
+input RegisterTutorInput {
+  email: String!
+
+  """Tutor first name"""
+  firstName: String!
+  lastName: String!
+  password: String!
+  phone: String!
+  school: School!
+}
+
+"""School custom scalar type"""
+scalar School
+
+type Student {
+  email: String!
+  firstName: String!
+  id: Float!
+  lastName: String!
+  phone: String!
+  school: School!
+}
+
+type Tutor {
+  email: String!
+  experience: Int
+  firstName: String!
+  id: Float!
+  lastName: String!
+  phone: String!
+  profileUrl: String
+  school: School!
+}
+
+input UpdateExperienceInput {
+  experience: Int!
+  id: Int!
+}
+
+input UpdateStudentInput {
+  email: String
+  firstName: String
+  id: Int!
+  lastName: String
+  password: String
+  phone: String
+  school: School
+}
+
+input UpdateTutorInput {
+  email: String
+
+  """Tutor first name"""
+  firstName: String
+  id: Int!
+  lastName: String
+  password: String
+  phone: String
+  school: School
+}

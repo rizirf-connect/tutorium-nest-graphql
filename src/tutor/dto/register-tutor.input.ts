@@ -3,8 +3,8 @@ import { IsNotEmpty, IsString } from 'class-validator';
 import { SchoolScalar } from 'src/common/scalars/school.scalar';
 
 @InputType()
-export class CreateStudentInput {
-  @Field()
+export class RegisterTutorInput {
+  @Field(() => String, { description: 'Tutor first name' })
   @IsNotEmpty()
   @IsString()
   firstName: string;

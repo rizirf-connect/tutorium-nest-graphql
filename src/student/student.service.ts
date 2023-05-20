@@ -1,25 +1,38 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateStudentInput } from './dto/create-student.input';
 import { UpdateStudentInput } from './dto/update-student.input';
-import { Repository } from 'typeorm';
-import { Student } from './entities/student.entity';
+import { PrismaService } from 'src/prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class StudentService {
-  constructor(
-    @Inject('STUDENT_REPOSITORY')
-    private studentRepository: Repository<Student>,
-  ) {}
-  create(createStudentInput: CreateStudentInput) {
-    return 'This action adds a new student';
+  constructor(private prismaService: PrismaService) {}
+
+  async create(createStudentInput: CreateStudentInput) {
+    const hashedPassword = await bcrypt.hash(createStudentInput.password, 10);
+
+    return this.prismaService.student.create({
+      data: {
+        firstName: createStudentInput.firstName,
+        lastName: createStudentInput.lastName,
+        email: createStudentInput.email,
+        phone: createStudentInput.phone,
+        password: hashedPassword,
+        school: createStudentInput.school,
+      },
+    });
   }
 
   findAll() {
-    return `This action returns all student`;
+    return this.prismaService.student.findMany();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} student`;
+    return this.prismaService.student.findFirst({
+      where: {
+        id: id,
+      },
+    });
   }
 
   update(id: number, updateStudentInput: UpdateStudentInput) {

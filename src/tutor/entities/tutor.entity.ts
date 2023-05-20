@@ -1,8 +1,8 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { SchoolScalar } from 'src/common/scalars/school.scalar';
 
 @ObjectType()
-export class Student {
+export class Tutor {
   @Field()
   id: number;
 
@@ -20,4 +20,10 @@ export class Student {
 
   @Field(() => SchoolScalar)
   school: string;
+
+  @Field({ nullable: true })
+  profileUrl?: string;
+
+  @Field(() => Int, { nullable: true })
+  experience?: number;
 }
