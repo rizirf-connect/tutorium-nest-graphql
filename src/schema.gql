@@ -2,89 +2,135 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-input CreateStudentInput {
+input AuthCredentialsInput {
   email: String!
-  firstName: String!
-  lastName: String!
   password: String!
-  phone: String!
-  school: School!
+}
+
+type AuthResponse {
+  accessToken: String!
+  user: User!
+}
+
+type Course {
+  id: Int!
+  name: String!
+  type: CourseType!
+}
+
+enum CourseType {
+  IB
+  VCE
+}
+
+input CreateCourseInput {
+  name: String!
+  type: CourseType!
+}
+
+input CreateLiveSessionInput {
+  courseId: Int!
+  duration: Int!
+  startAt: DateTime!
+  url: String!
+}
+
+input CreateRecordedSessionInput {
+  courseId: Int!
+  price: Float!
+}
+
+input CreateStudentSession {
+  sessionId: Int!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input FilterCourseInput {
+  type: CourseType!
+}
+
+input FilterSessionInput {
+  studentId: Int
+  userId: Int
+}
+
+input FilterUserInput {
+  role: Role!
+}
+
+input FindUserInput {
+  email: String
+  id: Int
+}
+
+type LiveSession {
+  duration: Int!
+  id: Int!
+  startAt: DateTime!
+  url: String!
 }
 
 type Mutation {
-  createStudent(createStudentInput: CreateStudentInput!): Student!
-  registerTutor(registerTutorInput: RegisterTutorInput!): Tutor!
-  removeStudent(id: Int!): Student!
-  removeTutor(id: Int!): Tutor!
-  updateStudent(updateStudentInput: UpdateStudentInput!): Student!
-  updateTutor(updateTutorInput: UpdateTutorInput!): Tutor!
-  updateTutorExperience(udateExperienceInput: UpdateExperienceInput!): Tutor!
+  createCourse(data: CreateCourseInput!): Course!
+  createLiveSession(data: CreateLiveSessionInput!): Session!
+  createRecordedSession(data: CreateRecordedSessionInput!): Session!
+  enrollStudent(data: CreateStudentSession!): User!
+  removeCourse(id: Int!): Course!
+  signIn(credentials: AuthCredentialsInput!): AuthResponse!
+  updateCourse(updateCourseInput: UpdateCourseInput!): Course!
 }
 
 type Query {
-  student(id: Int!): Student!
-  students: [Student!]!
-  tutor(id: Int!): Tutor!
-  tutors: [Tutor!]!
+  course(id: Int!): Course!
+  courses(where: FilterCourseInput): [Course!]!
+  me: User!
+  sessions(where: FilterSessionInput): [Session!]!
+  user(where: FindUserInput!): User!
+  users(where: FilterUserInput!): [User!]!
 }
 
-input RegisterTutorInput {
-  email: String!
-
-  """Tutor first name"""
-  firstName: String!
-  lastName: String!
-  password: String!
-  phone: String!
-  school: School!
-}
-
-"""School custom scalar type"""
-scalar School
-
-type Student {
-  email: String!
-  firstName: String!
-  id: Float!
-  lastName: String!
-  phone: String!
-  school: School!
-}
-
-type Tutor {
-  email: String!
-  experience: Int
-  firstName: String!
-  id: Float!
-  lastName: String!
-  phone: String!
-  profileUrl: String
-  school: School!
-}
-
-input UpdateExperienceInput {
-  experience: Int!
+type RecordedSession {
   id: Int!
+  price: Float!
 }
 
-input UpdateStudentInput {
-  email: String
-  firstName: String
-  id: Int!
-  lastName: String
-  password: String
-  phone: String
-  school: School
+enum Role {
+  ADMIN
+  STUDENT
+  TUTOR
 }
 
-input UpdateTutorInput {
-  email: String
-
-  """Tutor first name"""
-  firstName: String
+type Session {
+  course: Course!
+  courseId: Int!
+  detail: SessionUnion
   id: Int!
-  lastName: String
-  password: String
-  phone: String
-  school: School
+  students: [User!]
+  type: SessionType!
+}
+
+enum SessionType {
+  LIVE
+  RECORDED
+}
+
+union SessionUnion = LiveSession | RecordedSession
+
+input UpdateCourseInput {
+  id: Int!
+  name: String
+  type: CourseType
+}
+
+type User {
+  email: String!
+  firstName: String!
+  id: Int!
+  lastName: String!
+  role: Role!
+  sessions: [Session!]!
 }

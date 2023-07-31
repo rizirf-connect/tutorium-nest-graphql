@@ -10,32 +10,81 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Student {
-  id        Int      @id @unique @default(autoincrement()) @map("student_id")
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
-  school    String
-  email     String   @unique
-  phone     String   @unique
+model User {
+  id        Int       @id @unique @default(autoincrement()) @map("student_id")
+  firstName String?   @map("first_name")
+  lastName  String?   @map("last_name")
+  email     String    @unique
   password  String
+  role      Role
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  session   Session[] @relation("TutorSession")
+  sessions  Session[]
+
+  @@map("users")
+}
+
+model Course {
+  id      Int        @id @unique @default(autoincrement()) @map("course_id")
+  name    String     @map("course_name")
+  type    CourseType @map("course_type")
+  session Session[]
+
+  @@unique([name, type])
+  @@map("courses")
+}
+
+model Session {
+  id        Int         @id @unique @default(autoincrement()) @map("session_id")
+  courseId  Int         @map("course_id")
+  type      SessionType @default(LIVE) @map("session_type")
+  createdBy Int         @map("created_by")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("students")
+  user            User             @relation("TutorSession", fields: [createdBy], references: [id])
+  course          Course           @relation(fields: [courseId], references: [id])
+  liveSession     LiveSession?
+  recordedSession RecordedSession?
+  students        User[]
+
+  @@map("sessions")
 }
 
-model Tutor {
-  id         Int      @id @unique @default(autoincrement()) @map("tutor_id")
-  firstName  String   @map("first_name")
-  lastName   String   @map("last_name")
-  school     String
-  email      String   @unique
-  phone      String   @unique
-  password   String
-  profileUrl String?  @map("profile_url")
-  experience Int?
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+model LiveSession {
+  id       Int      @id @unique @default(autoincrement()) @map("session_id")
+  startAt  DateTime @map("start_at")
+  duration Int
+  url      String
 
-  @@map("tutors")
+  session Session @relation(fields: [id], references: [id])
+
+  @@map("live_sessions")
+}
+
+model RecordedSession {
+  id    Int     @id @unique @default(autoincrement()) @map("session_id")
+  price Decimal @db.Decimal(18, 2)
+
+  session Session @relation(fields: [id], references: [id])
+
+  @@map("recorded_sessions")
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+  ADMIN
+}
+
+enum SessionType {
+  LIVE
+  RECORDED
+}
+
+enum CourseType {
+  VCE
+  IB
 }
