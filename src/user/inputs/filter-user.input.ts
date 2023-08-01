@@ -1,8 +1,8 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { UserRole } from '../entities/user.entity';
 
 @InputType()
 export class FilterUserInput {
-  @Field(() => Role)
-  role: Role;
+  @Field(() => UserRole)
+  role: UserRole;
 }

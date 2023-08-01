@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { CourseType } from '@prisma/client';
+import { CourseType } from '../entities/course.entity';
 
 @InputType()
 export class FilterCourseInput {

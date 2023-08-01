@@ -18,6 +18,7 @@ type Course {
   type: CourseType!
 }
 
+"""The supported course types."""
 enum CourseType {
   IB
   VCE
@@ -28,20 +29,19 @@ input CreateCourseInput {
   type: CourseType!
 }
 
-input CreateLiveSessionInput {
+input CreateLectureInput {
   courseId: Int!
   duration: Int!
   startAt: DateTime!
   url: String!
 }
 
-input CreateRecordedSessionInput {
-  courseId: Int!
-  price: Float!
-}
-
-input CreateStudentSession {
-  sessionId: Int!
+input CreateUserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  role: UserRoles!
 }
 
 """
@@ -53,84 +53,54 @@ input FilterCourseInput {
   type: CourseType!
 }
 
-input FilterSessionInput {
-  studentId: Int
-  userId: Int
+input FilterLectureInput {
+  includeEnrolledLectures: Boolean! = false
+  studentId: String
+  tutorId: String
 }
 
 input FilterUserInput {
-  role: Role!
+  role: UserRoles!
 }
 
-input FindUserInput {
-  email: String
-  id: Int
-}
-
-type LiveSession {
+type Lecture {
+  course: Course
   duration: Int!
   id: Int!
   startAt: DateTime!
+  students: [User!]
+  tutor: User
   url: String!
 }
 
 type Mutation {
   createCourse(data: CreateCourseInput!): Course!
-  createLiveSession(data: CreateLiveSessionInput!): Session!
-  createRecordedSession(data: CreateRecordedSessionInput!): Session!
-  enrollStudent(data: CreateStudentSession!): User!
-  removeCourse(id: Int!): Course!
+  createLecture(data: CreateLectureInput!): Lecture!
+  enroll(data: Int!): Lecture!
+  register(data: CreateUserInput!): User!
   signIn(credentials: AuthCredentialsInput!): AuthResponse!
-  updateCourse(updateCourseInput: UpdateCourseInput!): Course!
 }
 
 type Query {
   course(id: Int!): Course!
   courses(where: FilterCourseInput): [Course!]!
+  lectures(where: FilterLectureInput): [Lecture!]!
   me: User!
-  sessions(where: FilterSessionInput): [Session!]!
-  user(where: FindUserInput!): User!
-  users(where: FilterUserInput!): [User!]!
-}
-
-type RecordedSession {
-  id: Int!
-  price: Float!
-}
-
-enum Role {
-  ADMIN
-  STUDENT
-  TUTOR
-}
-
-type Session {
-  course: Course!
-  courseId: Int!
-  detail: SessionUnion
-  id: Int!
-  students: [User!]
-  type: SessionType!
-}
-
-enum SessionType {
-  LIVE
-  RECORDED
-}
-
-union SessionUnion = LiveSession | RecordedSession
-
-input UpdateCourseInput {
-  id: Int!
-  name: String
-  type: CourseType
+  users(where: FilterUserInput): [User!]!
 }
 
 type User {
   email: String!
   firstName: String!
-  id: Int!
+  id: String!
   lastName: String!
-  role: Role!
-  sessions: [Session!]!
+  lectures: [Lecture!]
+  role: UserRoles!
+}
+
+"""The supported user roles."""
+enum UserRoles {
+  ADMIN
+  STUDENT
+  TUTOR
 }

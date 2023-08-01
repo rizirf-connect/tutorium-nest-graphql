@@ -7,61 +7,46 @@ import {
   Mutation,
 } from '@nestjs/graphql';
 import { UserService } from './user.service';
-import { User } from './entities/user.entity';
-import { FindUserInput } from './dto/find-user.input';
+import { User, UserRole } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { SessionService } from 'src/session/services/session.service';
-import { FilterUserInput } from './dto/filter-user.input';
-import CreateStudentSession from './dto/add-student_session';
+import { FilterUserInput } from './inputs/filter-user.input';
+import { LectureService } from 'src/lecture/lecture.service';
+import { CreateUserInput } from './inputs/create-user.input';
 
 @Resolver(() => User)
 export class UserResolver {
   constructor(
     private readonly userService: UserService,
-    private readonly sessionService: SessionService,
+    private readonly lectureService: LectureService,
   ) {}
 
   @Query(() => [User], { name: 'users' })
-  findAll(@Args('where') input: FilterUserInput) {
+  findAll(@Args('where', { nullable: true }) input: FilterUserInput) {
     return this.userService.findAll(input);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @Query(() => User, { name: 'user' })
-  findOne(@Args('where') input: FindUserInput) {
-    return this.userService.findOne(input);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.TUTOR, Role.STUDENT)
+  @Roles(UserRole.TUTOR, UserRole.STUDENT)
   @Query(() => User, { name: 'me' })
-  me(@CurrentUser('userId') userId: number) {
+  me(@CurrentUser('userId') userId: string) {
     return this.userService.findOne({ id: userId });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.STUDENT)
-  @Mutation(() => User)
-  enrollStudent(
-    @Args('data') createStudentSession: CreateStudentSession,
-    @CurrentUser('userId') userId: number,
-  ) {
-    return this.userService.createStudentSession(
-      {
-        sessionId: createStudentSession.sessionId,
-      },
-      userId,
-    );
+  @Mutation(() => User, { name: 'register' })
+  registerUser(@Args('data') createUserInput: CreateUserInput) {
+    return this.userService.create(createUserInput);
   }
 
   @ResolveField()
-  sessions(@Parent() user: User) {
-    return this.sessionService.findAll({ userId: user.id });
+  lectures(@Parent() user: User) {
+    if (user.role === UserRole.STUDENT) {
+      return this.lectureService.findAll({ studentId: user.id });
+    } else {
+      return this.lectureService.findAll({ tutorId: user.id });
+    }
   }
 }

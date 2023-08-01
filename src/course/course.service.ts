@@ -1,44 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCourseInput } from './dto/create-course.input';
-import { UpdateCourseInput } from './dto/update-course.input';
-import { FindCourseInput } from './dto/find-course.input';
-import { PrismaService } from 'src/common/services/prisma.service';
-import { FilterCourseInput } from './dto/filter-course.input';
+import { CreateCourseInput } from './inputs/create-course.input';
+import { FilterCourseInput } from './inputs/filter-course.input';
+import { Repository } from 'typeorm';
+import { Course } from './entities/course.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class CourseService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    @InjectRepository(Course) private readonly courses: Repository<Course>,
+  ) {}
 
   create(createCourseInput: CreateCourseInput) {
-    return this.prismaService.course.create({
-      data: {
-        name: createCourseInput.name,
-        type: createCourseInput.type,
-      },
-    });
+    return this.courses.save({ ...createCourseInput });
   }
 
   findAll(filterCourseInput: FilterCourseInput) {
-    return this.prismaService.course.findMany({
-      where: {
-        type: filterCourseInput.type,
-      },
-    });
+    return this.courses.findBy({ ...filterCourseInput });
   }
 
-  findOne(findCourseInput: FindCourseInput) {
-    return this.prismaService.course.findUnique({
-      where: {
-        id: findCourseInput.id,
-      },
-    });
-  }
-
-  update(id: number, updateCourseInput: UpdateCourseInput) {
-    return `This action updates a #${id} course`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} course`;
+  findOne(id: number) {
+    return this.courses.findOneByOrFail({ id });
   }
 }

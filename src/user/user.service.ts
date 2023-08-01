@@ -1,52 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { FindUserInput } from './dto/find-user.input';
-import { PrismaService } from 'src/common/services/prisma.service';
-import { FilterUserInput } from './dto/filter-user.input';
-import CreateStudentSession from './dto/add-student_session';
+import { FilterUserInput } from './inputs/filter-user.input';
+import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindUserInput } from './inputs/find-user.input';
+import { CreateUserInput } from './inputs/create-user.input';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(readonly prismaService: PrismaService) {}
+  constructor(
+    @InjectRepository(User) private readonly users: Repository<User>,
+  ) {}
 
   findOne(findUserInput: FindUserInput) {
-    return this.prismaService.user.findFirst({
-      where: findUserInput,
-    });
+    return this.users.findOneByOrFail({ ...findUserInput });
   }
 
   findAll(filterUserInput: FilterUserInput) {
-    return this.prismaService.user.findMany({
-      where: {
-        role: filterUserInput.role,
-      },
-    });
+    return this.users.findBy({ ...filterUserInput });
   }
 
-  createStudentSession(
-    createStudentSession: CreateStudentSession,
-    userId: number,
-  ) {
-    return this.prismaService.user.update({
-      where: { id: userId },
-      data: {
-        sessions: {
-          connect: {
-            id: createStudentSession.sessionId,
-          },
-        },
-      },
-    });
-  }
-
-  findAllStudentsInSession(sessionId: number) {
-    return this.prismaService.user.findMany({
-      where: {
-        sessions: {
-          some: {
-            id: sessionId,
-          },
-        },
-      },
+  async create(createUserInput: CreateUserInput) {
+    const hashedPassword = await bcrypt.hash(createUserInput.password, 10);
+    return this.users.save({
+      ...createUserInput,
+      password: hashedPassword,
     });
   }
 }
